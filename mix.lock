@@ -1,0 +1,5 @@
+%{
+  "erlazure": {:git, "https://github.com/gullitmiranda/erlazure.git", "9c23921d0a64c954da93b98477743bbd3eac9cdc", []},
+  "ex_azure": {:git, "https://github.com/azukiapp/ex_azure.git", "eea8167462d952adb8555b506cd90bb72b590042", []},
+  "jsx": {:git, "git://github.com/talentdeficit/jsx.git", "45ffea21a6863c58fb7da1f937e868916ff68b27", [ref: "master"]},
+}
