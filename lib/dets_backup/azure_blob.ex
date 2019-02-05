@@ -1,4 +1,17 @@
 defmodule DetsBackup.AzureBlob do
+  defmacro __using__(_) do
+    if Mix.env() == :prod do
+      quote do
+        alias __MODULE__, as: Storage
+      end
+    else
+      quote do
+        alias DetsBackup.LocalDisk, as: Storage
+        @table_name 'test_' ++ @table_name
+      end
+    end
+  end
+
   def lookup(table_name, key) do
     open_table(table_name)
     :dets.lookup(table_name, key)
