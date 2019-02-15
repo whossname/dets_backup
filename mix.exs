@@ -22,6 +22,8 @@ defmodule DetsBackup.MixProject do
   defp deps do
     [
       {:ex_azure, github: "azukiapp/ex_azure"},
+
+      {:mock, "~> 0.3.0", only: :test},
     ]
   end
 end
