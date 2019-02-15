@@ -1,14 +1,21 @@
 defmodule DetsBackup.AzureBlob do
   defmacro __using__(_) do
-    if Mix.env() == :prod do
-      quote do
-        alias __MODULE__, as: Storage
-      end
-    else
-      quote do
-        alias DetsBackup.LocalDisk, as: Storage
-        @table_name 'test_' ++ @table_name
-      end
+    case Mix.env() do
+      :prod ->
+        quote do
+          alias __MODULE__, as: Storage
+        end
+
+      :dev ->
+        quote do
+          alias DetsBackup.LocalDisk, as: Storage
+          @table_name @table_name ++ '_development'
+        end
+
+      :test ->
+        quote do
+          alias DetsBackup.LocalMemory, as: Storage
+        end
     end
   end
 
@@ -39,7 +46,7 @@ defmodule DetsBackup.AzureBlob do
 
   def list(table_name) do
     table = open_table(table_name)
-    resp = :dets.foldl(&([&1 | &2]), [], table)
+    resp = :dets.foldl(&[&1 | &2], [], table)
     :dets.close(table)
     resp
   end
@@ -51,7 +58,7 @@ defmodule DetsBackup.AzureBlob do
       |> retrieve_blob(table_name)
     end
 
-    {:ok, table} = :dets.open_file(table_name, [type: :set])
+    {:ok, table} = :dets.open_file(table_name, type: :set)
     table
   end
 
@@ -61,6 +68,7 @@ defmodule DetsBackup.AzureBlob do
   end
 
   defp retrieve_blob(false, _), do: false
+
   defp retrieve_blob(true, table_name) do
     {:ok, {:ok, content}} = ExAzure.request(:get_blob, [blob_container(), table_name])
     File.write(table_name, content)
