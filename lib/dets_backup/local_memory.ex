@@ -32,7 +32,7 @@ defmodule DetsBackup.LocalMemory do
     :ets.whereis(table_name)
     |> case do
       :undefined -> :ets.new(table_name, [:named_table])
-      table -> table
+      _ -> table_name
     end
   end
 end
