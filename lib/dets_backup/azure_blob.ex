@@ -3,7 +3,7 @@ defmodule DetsBackup.AzureBlob do
     case Mix.env() do
       :prod ->
         quote do
-          alias __MODULE__, as: Storage
+          alias DetsBackup.AzureBlob, as: Storage
         end
 
       :dev ->

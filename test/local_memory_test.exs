@@ -10,6 +10,9 @@ defmodule DetsBackup.LocalMemoryTest do
     assert [{@table, @table}] = Storage.list(@table)
     Storage.delete(@table, @table)
     assert [] = Storage.lookup(@table, @table)
+
+    Storage.insert(@table, :atom, [])
+    assert [{:atom, []}] = Storage.lookup(@table, :atom)
   end
 end
 
