@@ -57,6 +57,7 @@ defmodule DetsBackup.AzureBlob do
       |> check_blob_exists()
       |> retrieve_blob(table_name)
     end
+    |> IO.inspect()
 
     {:ok, table} = :dets.open_file(table_name, type: :set)
     table
@@ -64,13 +65,16 @@ defmodule DetsBackup.AzureBlob do
 
   defp check_blob_exists(table_name) do
     {:ok, %{body: body}} = ExAzure.request(:list_blobs, [blob_container()])
+    |> IO.inspect()
     Enum.any?(body, fn blob -> Kernel.elem(blob, 1) == table_name end)
+    |> IO.inspect()
   end
 
   defp retrieve_blob(false, _), do: false
 
   defp retrieve_blob(true, table_name) do
     {:ok, {:ok, content}} = ExAzure.request(:get_blob, [blob_container(), table_name])
+    |> IO.inspect()
     File.write(table_name, content)
   end
 
