@@ -19,6 +19,8 @@ defmodule DetsBackup.AzureBlob do
     end
   end
 
+  require Logger
+
   def lookup(table_name, key) do
     open_table(table_name)
     resp = :dets.lookup(table_name, key)
@@ -55,11 +57,22 @@ defmodule DetsBackup.AzureBlob do
 
   defp open_table(table_name) do
     if !File.exists?(table_name) do
-      table_name
-      |> check_blob_exists()
-      |> retrieve_blob(table_name)
+      exists =
+        table_name
+        |> check_blob_exists()
+        |> retrieve_blob(table_name)
+
+      case exists do
+        :no_blob ->
+          Logger.warn("No dets file to retrieve")
+
+        :ok ->
+          Logger.info("Retrieved the dets file from AzureBlob")
+
+        {:error, posix} ->
+          Logger.error("Unable to retrieve the dets file from AzureBlob: #{posix}")
+      end
     end
-    |> IO.inspect()
 
     {:ok, table} = :dets.open_file(table_name, type: :set)
     table
@@ -70,7 +83,7 @@ defmodule DetsBackup.AzureBlob do
     Enum.any?(body, fn blob -> Kernel.elem(blob, 1) == table_name end)
   end
 
-  defp retrieve_blob(false, _), do: false
+  defp retrieve_blob(false, _), do: :no_blob
 
   defp retrieve_blob(true, table_name) do
     {:ok, {:ok, content}} = ExAzure.request(:get_blob, [blob_container(), table_name])
