@@ -21,7 +21,9 @@ defmodule DetsBackup.AzureBlob do
 
   def lookup(table_name, key) do
     open_table(table_name)
-    :dets.lookup(table_name, key)
+    resp = :dets.lookup(table_name, key)
+    :dets.close(table_name)
+    resp
   end
 
   def insert(table_name, key, value) do
@@ -32,7 +34,7 @@ defmodule DetsBackup.AzureBlob do
     table = open_table(table_name)
     resp = :dets.insert(table, tuple)
     :dets.close(table)
-    store(table_name)
+    backup(table_name)
     resp
   end
 
@@ -40,7 +42,7 @@ defmodule DetsBackup.AzureBlob do
     table = open_table(table_name)
     resp = :dets.delete(table, key)
     :dets.close(table)
-    store(table_name)
+    backup(table_name)
     resp
   end
 
@@ -65,20 +67,17 @@ defmodule DetsBackup.AzureBlob do
 
   defp check_blob_exists(table_name) do
     {:ok, %{body: body}} = ExAzure.request(:list_blobs, [blob_container()])
-    |> IO.inspect()
     Enum.any?(body, fn blob -> Kernel.elem(blob, 1) == table_name end)
-    |> IO.inspect()
   end
 
   defp retrieve_blob(false, _), do: false
 
   defp retrieve_blob(true, table_name) do
     {:ok, {:ok, content}} = ExAzure.request(:get_blob, [blob_container(), table_name])
-    |> IO.inspect()
     File.write(table_name, content)
   end
 
-  defp store(table_name) do
+  defp backup(table_name) do
     {:ok, file} = File.read(table_name)
     ExAzure.request(:put_block_blob, [blob_container(), table_name, file])
   end
